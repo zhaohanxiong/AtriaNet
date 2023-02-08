@@ -5,8 +5,7 @@ import h5py
 import scipy.io
 import numpy as np
 from scipy import ndimage
-import matplotlib.pyplot as plt
-from QingXia_Utils import equalize_adapthist_3d
+from Utils import equalize_adapthist_3d
 
 def create_folder(full_path_filename):
 	# this function creates a folder if its not already existed
@@ -19,7 +18,7 @@ n1 = 272 # x
 n2 = 272 # y
 
 ### Utah Data ----------------------------------------------------------------------------------------------------------------------------------------------
-os.chdir("C:/Users/zxio506/Desktop/Atria_Data/AWT Utah Bi-Atria")
+os.chdir("/hpc/zxio506/Atria_Data/AWT Utah Bi-Atria")
 
 N_train_patients = 70 # patients to use for train set
 
@@ -120,11 +119,10 @@ for i in range(N_train_patients,len(files)):
 	test_AWT.append(temp_awt)
 	
 ### Save Data ----------------------------------------------------------------------------------------------------------------------------------------------
-os.chdir("C:/Users/zxio506/Desktop")
+os.chdir("/hpc/zxio506/2022_runs")
 
 create_folder("UtahAWT Test Set")
 create_folder("UtahAWT Test Set/log")
-create_folder("UtahAWT Test Set/Prediction Sample")
 
 # Train Data
 train_Image,train_Label,train_AWT = np.array(train_Image),np.array(train_Label),np.array(train_AWT)

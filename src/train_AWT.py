@@ -2,13 +2,9 @@ import tflearn
 import tensorflow as tf
 
 import os
-import sys
-import cv2
 import h5py
-import random
 import scipy.io
 import numpy as np
-import matplotlib.pyplot as plt	
 
 n1 = 272 # x
 n2 = 272 # y
@@ -73,45 +69,6 @@ def evaluate(data,CNN_model,log_path,mu=0,sd=1):
 	f.close()
 
 	return(np.array(mse_masked_score))
-
-def save_best(data,CNN_model,mu=0,sd=1):
-
-	print("\nSaving Best Outputs...\n")
-
-	# set up 
-	test_image,test_label = data["label"],data["awt"]
-	
-	# loop through all test patients
-	for i in range(test_image.shape[0]):
-		
-		# compile each MRI image into a stack by their centroids
-		pred = np.zeros([576,576,44])
-		
-		for j in range(test_image.shape[3]):
-			
-			# find the center of mass of the mask
-			midpoint = data["centroid"][i,j,:]
-			
-			# extract the patches from the midpoint
-			if not np.any(np.isnan(midpoint)):
-				
-				n11,n12 = int(midpoint[0] - n1//2),int(midpoint[0] + n1//2)
-				n21,n22 = int(midpoint[1] - n2//2),int(midpoint[1] + n2//2)
-
-				# make prediction for slices with midpoints
-				data_i = [(test_image[i,n11:n12,n21:n22,j][:,:,None]-mu)/sd]
-				data_o = CNN_model.predict(data_i)
-
-				pred[n11:n12,n21:n22,j] = data_o[0,:,:,0]
-		
-		# mask out the non atrial wall pixels in the prediction
-		pred[test_label[i] == 0] = 0
-		
-		# save to output
-		scipy.io.savemat("Prediction Sample/test"+"{0:03}".format(i)+".mat",mdict={"input_seg": test_image[i],
-		                                                                           "true":      test_label[i],
-																				   "pred":      pred,
-																				   "lgemri":    data["image"][i]})
 
 ### Computation Graph ------------------------------------------------------------------------------------------------------------------
 # 3d convolution operation
@@ -250,16 +207,7 @@ train_data,test_data = h5py.File("Training.h5","r"),h5py.File("Testing.h5","r")
 
 # preprocess input and output data
 train_image,train_label = train_data["label"],train_data["awt"]
-
 train_image = np.argmax(train_image,3)[:,:,:,None] # LA+RA endo+wall as input
-#train_image[train_image>2] = 0
-
-# mask lge-mri pixel values over wall label
-#train_mri = train_data["image"]
-#train_mri = train_mri/np.max(train_mri)*255
-#train_mri = train_mri.astype(np.uint8)
-#train_mri[train_image>2] = 0
-#train_image = np.copy(train_mri)
 
 # keep track of best dice score
 f = open(log_path,"w");f.close()
@@ -279,5 +227,4 @@ for n in range(1000):
 	if np.mean(MSEs) < best_mse:
 	
 		best_mse = np.mean(MSEs)
-		save_best(test_data,model) #,train_mean,train_sd)
 		model.save("log/AWTmodel_Utah")
