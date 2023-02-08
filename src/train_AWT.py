@@ -3,7 +3,6 @@ import tensorflow as tf
 
 import os
 import h5py
-import scipy.io
 import numpy as np
 
 n1 = 272 # x
@@ -213,7 +212,7 @@ train_image = np.argmax(train_image,3)[:,:,:,None] # LA+RA endo+wall as input
 f = open(log_path,"w");f.close()
 best_mse = 1000
 
-for n in range(1000):
+for n in range(100):
 	
 	f = open(log_path,"a");f.write("-"*50+" Epoch "+str(n+1)+"\n");f.close()
 

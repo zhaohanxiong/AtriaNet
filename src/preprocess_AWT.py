@@ -1,11 +1,9 @@
 import os
 import cv2
-import sys
 import h5py
 import scipy.io
 import numpy as np
 from scipy import ndimage
-from Utils import equalize_adapthist_3d
 
 def create_folder(full_path_filename):
 	# this function creates a folder if its not already existed
@@ -20,7 +18,7 @@ n2 = 272 # y
 ### Utah Data ----------------------------------------------------------------------------------------------------------------------------------------------
 os.chdir("/hpc/zxio506/Atria_Data/AWT Utah Bi-Atria")
 
-N_train_patients = 70 # patients to use for train set
+N_train_patients = 80 # patients to use for train set
 
 # list all the files in training and testing sets
 files = os.listdir()
@@ -38,17 +36,7 @@ for i in range(N_train_patients):
 
 	# list all files in lgemri and labels
 	img_files,lab_files = os.listdir(files[i]+"/lgemri"),os.listdir(files[i]+"/label")
-	
-	# load lgemri data
-	temp_img = np.zeros_like(temp_awt)
-	for n in range(temp_img.shape[2]):
-		
-		# load image 8-bit
-		temp_img[:,:,n] = cv2.imread(os.path.join(files[i]+"/lgemri",img_files[n]),cv2.IMREAD_GRAYSCALE)
-		
-	# normalize data
-	temp_img = equalize_adapthist_3d(temp_img / np.max(temp_img))
-	
+
 	# load label data one slice at a time
 	for n in range(0,len(lab_files),2):
 		
@@ -69,7 +57,6 @@ for i in range(N_train_patients):
 			n21,n22 = int(midpoint[1] - n2//2),int(midpoint[1] + n2//2)
 
 			# local image label for scan
-			train_Image.append(temp_img[n11:n12,n21:n22,n])
 			train_Label.append(temp_lab[n11:n12,n21:n22])
 			train_AWT.append(temp_awt[n11:n12,n21:n22,n])
 
@@ -85,18 +72,7 @@ for i in range(N_train_patients,len(files)):
 	
 	# list all files in lgemri and labels
 	img_files,lab_files = os.listdir(files[i]+"/lgemri"),os.listdir(files[i]+"/label")
-	
-	# load lgemri data
-	temp_img = np.zeros([x,y,z])
-	for n in range(len(img_files)):
-		
-		# load image 8-bit
-		temp_img[:,:,n] = cv2.imread(os.path.join(files[i]+"/lgemri",img_files[n]),cv2.IMREAD_GRAYSCALE)
-		
-	# normalize data
-	temp_img = equalize_adapthist_3d(temp_img / np.max(temp_img))
-	temp_img = temp_img[(x//2-288):(x//2+288),(y//2-288):(y//2+288),::2]
-	
+
 	# loop through all the label slices
 	patient_lab,patient_mid = np.zeros([576,576,44]),np.zeros([44,2])
 
@@ -113,7 +89,6 @@ for i in range(N_train_patients,len(files)):
 		patient_mid[n//2,:]   = ndimage.measurements.center_of_mass(temp_lab > 0)
 
 	# local image label for scan
-	test_Image.append(temp_img)
 	test_Label.append(patient_lab)
 	Barycenter.append(patient_mid)
 	test_AWT.append(temp_awt)
@@ -143,7 +118,6 @@ test_AWT[test_AWT>20] = 0
 # create a HDF5 dataset
 print("---------- Saving Training Data")
 h5f = h5py.File('UtahAWT Test Set/Training.h5','w')
-h5f.create_dataset("image", data=train_Image)
 h5f.create_dataset("label", data=train_Label)
 h5f.create_dataset("awt",   data=train_AWT)
 h5f.close()
@@ -151,7 +125,6 @@ h5f.close()
 # create a HDF5 dataset
 print("---------- Saving Testing Data")
 h5f = h5py.File('UtahAWT Test Set/Testing.h5','w')
-h5f.create_dataset("image",    data=test_Image)
 h5f.create_dataset("label",    data=test_Label)
 h5f.create_dataset("centroid", data=Barycenter)
 h5f.create_dataset("awt",      data=test_AWT)
