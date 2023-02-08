@@ -98,6 +98,7 @@ os.chdir("/hpc/zxio506/2022_runs")
 
 create_folder("UtahAWT Test Set")
 create_folder("UtahAWT Test Set/log")
+create_folder("UtahAWT Test Set/Prediction Sample")
 
 # Train Data
 train_Image,train_Label,train_AWT = np.array(train_Image),np.array(train_Label),np.array(train_AWT)
