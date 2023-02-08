@@ -100,8 +100,7 @@ def save_best(data,CNN_model,mu=0,sd=1):
 		# save to output
 		scipy.io.savemat("Prediction Sample/test"+"{0:03}".format(i)+".mat",mdict={"input_seg": test_image[i],
 		                                                                           "true":      test_label[i],
-																				   "pred":      pred,
-																				   "lgemri":    data["image"][i]})
+																				   "pred":      pred})
 
 ### Computation Graph ------------------------------------------------------------------------------------------------------------------
 model = AtriaNet_AWT(n1, n2)
